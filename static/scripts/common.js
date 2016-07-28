@@ -140,6 +140,7 @@ define([
                 case 'send_shared_upload_link': return siteRoot + 'share/upload_link/send/';
 
                 // Group
+                case 'search_group': return siteRoot + 'api/v2.1/search-group/';
                 case 'groups': return siteRoot + 'api/v2.1/groups/';
                 case 'group': return siteRoot + 'api/v2.1/groups/' + options.group_id + '/';
                 case 'group_members': return siteRoot + 'api/v2.1/groups/' + options.group_id + '/members/';
@@ -619,6 +620,74 @@ define([
                 formatResult: function(item) {
                     if (item.avatar_url) {
                         return '<img src="' + item.avatar_url + '" width="32" height="32" class="avatar"><span class="text ellipsis">' + _this.HTMLescape(item.name) + '<br />' + _this.HTMLescape(item.contact_email) + '</span>';
+                    } else {
+                        return; // if no match, show nothing
+                    }
+                },
+
+                // format selected item shown in the input
+                formatSelection: function(item) {
+                    return _this.HTMLescape(item.name || item.id); // if no name, show the email, i.e., when directly input, show the email
+                },
+
+                createSearchChoice: function(term) {
+                    return {
+                        'id': $.trim(term)
+                    };
+                },
+
+                escapeMarkup: function(m) { return m; }
+            }
+        },
+
+        groupInputOptionsForSelect2: function() {
+            var _this = this;
+            return {
+                placeholder: gettext("Search groups"),
+
+                // with 'tags', the user can directly enter, not just select
+                // tags need `<input type="hidden" />`, not `<select>`
+                tags: [],
+
+                minimumInputLength: 1, // input at least 1 character
+
+                formatInputTooShort: gettext("Please enter 1 or more character"),
+                formatNoMatches: gettext("No matches"),
+                formatSearching: gettext("Searching..."),
+                formatAjaxError: gettext("Loading failed"),
+
+                ajax: {
+                    url: _this.getUrl({name: 'search_group'}),
+                    dataType: 'json',
+                    delay: 250,
+                    cache: true,
+                    data: function(params) {
+                        return {
+                            q: params
+                        };
+                    },
+                    results: function(data) {
+                        var group_list = [], groups = data;
+
+                        for (var i = 0, len = groups.length; i < len; i++) {
+                            group_list.push({ // 'id' & 'text' are required by the plugin
+                                "id": groups[i].id,
+                                "text": groups[i].name,
+                                "avatar_url": groups[i].avatar_url,
+                                "name": groups[i].name
+                            });
+                        }
+
+                        return {
+                            results: group_list
+                        };
+                    }
+                },
+
+                // format items shown in the drop-down menu
+                formatResult: function(item) {
+                    if (item.name) {
+                        return '<span class="text ellipsis">' + _this.HTMLescape(item.name) + '</span>';
                     } else {
                         return; // if no match, show nothing
                     }

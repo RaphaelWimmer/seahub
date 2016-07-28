@@ -94,15 +94,9 @@ define([
         dirGroupSharePanelInit: function() {
             var form = this.$('#dir-group-share');
 
-            var groups = app.pageOptions.groups || [];
-            var g_opts = '';
-            for (var i = 0, len = groups.length; i < len; i++) {
-                g_opts += '<option value="' + groups[i].id + '" data-index="' + i + '">' + groups[i].name + '</option>';
-            }
-            $('[name="groups"]', form).html(g_opts).select2({
-                placeholder: gettext("Select groups"),
-                escapeMarkup: function(m) { return m; }
-            });
+            $('[name="groups"]', form).select2($.extend({
+                //width: '292px' // the container will copy class 'w100' from the original element to get width
+            },Common.groupInputOptionsForSelect2()));
 
             // show existing items
             var $add_item = $('#add-dir-group-share-item');
